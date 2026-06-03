@@ -12,7 +12,6 @@ export default function LoginScreen({ navigation }) {
   const { login, cargando } = useAuth();
 
   async function handleLogin() {
-    // Validación de campos obligatorios (manejo de errores del front)
     if (!email.trim() || !password.trim()) {
       Alert.alert('Campos incompletos', 'Completá email y contraseña');
       return;
@@ -21,10 +20,8 @@ export default function LoginScreen({ navigation }) {
     const resultado = await login(email, password);
 
     if (resultado.ok) {
-      // Login exitoso → ir al Home
       navigation.replace('Home');
     } else {
-      // Mostrar el error que devolvió el backend
       Alert.alert('Error', resultado.mensaje);
     }
   }
@@ -39,8 +36,12 @@ export default function LoginScreen({ navigation }) {
 
       {/* Tabs */}
       <View style={styles.tabs}>
-        <Text style={styles.tabActive}>Iniciar sesión</Text>
-        <Text style={styles.tabInactive}>Registrarse</Text>
+        <TouchableOpacity style={styles.tabActiveBtn} onPress={() => {}}>
+          <Text style={styles.tabActive}>Iniciar sesión</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.tabInactiveBtn} onPress={() => navigation.navigate('RegisterStage1')}>
+          <Text style={styles.tabInactive}>Registrarse</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Campo email */}
@@ -79,9 +80,11 @@ export default function LoginScreen({ navigation }) {
         )}
       </TouchableOpacity>
 
-      <Text style={styles.registerLink}>
-        ¿No tenés cuenta? <Text style={{ color: colors.gold }}>Registrate</Text>
-      </Text>
+      <TouchableOpacity onPress={() => navigation.navigate('RegisterStage1')}>
+        <Text style={styles.registerLink}>
+          ¿No tenés cuenta? <Text style={{ color: colors.gold }}>Registrate</Text>
+        </Text>
+      </TouchableOpacity>
     </KeyboardAvoidingView>
   );
 }
@@ -107,20 +110,24 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
     marginBottom: 28,
   },
-  tabActive: {
+  tabActiveBtn: {
     flex: 1,
-    textAlign: 'center',
-    color: colors.gold,
     paddingBottom: 12,
     borderBottomWidth: 2,
     borderBottomColor: colors.gold,
+  },
+  tabInactiveBtn: {
+    flex: 1,
+    paddingBottom: 12,
+  },
+  tabActive: {
+    textAlign: 'center',
+    color: colors.gold,
     fontSize: 14,
   },
   tabInactive: {
-    flex: 1,
     textAlign: 'center',
     color: colors.textMuted,
-    paddingBottom: 12,
     fontSize: 14,
   },
   label: {

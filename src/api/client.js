@@ -2,7 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // IMPORTANTE: la URL del backend.
-const API_URL = 'http://10.100.10.211:8080';
+// Para simulador iOS usar localhost. Para dispositivo físico usar la IP de la Mac.
+const API_URL = 'http://localhost:8080';
 
 const client = axios.create({
   baseURL: API_URL,
