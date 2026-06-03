@@ -122,6 +122,24 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.accionTxt}>Notificaciones</Text>
           <Text style={styles.accionArrow}>›</Text>
         </TouchableOpacity>
+        <View style={styles.accionSep} />
+        <TouchableOpacity
+          style={styles.accionBtn}
+          onPress={() => navigation.navigate('BidHistory')}
+        >
+          <Text style={styles.accionIcono}>📋</Text>
+          <Text style={styles.accionTxt}>Mis pujas</Text>
+          <Text style={styles.accionArrow}>›</Text>
+        </TouchableOpacity>
+        <View style={styles.accionSep} />
+        <TouchableOpacity
+          style={styles.accionBtn}
+          onPress={() => navigation.navigate('ProposeItem')}
+        >
+          <Text style={styles.accionIcono}>🏺</Text>
+          <Text style={styles.accionTxt}>Proponer artículo</Text>
+          <Text style={styles.accionArrow}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Botón cerrar sesión */}
@@ -187,6 +205,7 @@ const styles = StyleSheet.create({
   accionIcono: { fontSize: 18, marginRight: 12 },
   accionTxt: { color: colors.textPrimary, fontSize: 14, flex: 1 },
   accionArrow: { color: colors.textMuted, fontSize: 20 },
+  accionSep: { height: 1, backgroundColor: colors.border, marginVertical: 4 },
 
   logoutBtn: {
     borderWidth: 1, borderColor: '#ef4444',

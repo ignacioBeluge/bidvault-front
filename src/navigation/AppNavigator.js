@@ -16,6 +16,8 @@ import RegisterStage1Screen from '../screens/RegisterStage1Screen';
 import RegisterStage2Screen from '../screens/RegisterStage2Screen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import BidHistoryScreen from '../screens/BidHistoryScreen';
+import ProposeItemScreen from '../screens/ProposeItemScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -69,6 +71,32 @@ export default function AppNavigator() {
           options={{
             headerShown: true,
             title: 'Mi perfil',
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.gold,
+            headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          }}
+        />
+
+        {/* Historial de pujas */}
+        <Stack.Screen
+          name="BidHistory"
+          component={BidHistoryScreen}
+          options={{
+            headerShown: true,
+            title: 'Mis pujas',
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.gold,
+            headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          }}
+        />
+
+        {/* Proponer artículo */}
+        <Stack.Screen
+          name="ProposeItem"
+          component={ProposeItemScreen}
+          options={{
+            headerShown: true,
+            title: 'Proponer artículo',
             headerStyle: { backgroundColor: colors.surface },
             headerTintColor: colors.gold,
             headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
