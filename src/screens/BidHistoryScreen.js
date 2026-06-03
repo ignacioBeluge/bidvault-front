@@ -79,6 +79,7 @@ function formatFecha(iso) {
 
 function HistorialCard({ item, navigation }) {
   const cfg = ESTADO_CONFIG[item.estado] || ESTADO_CONFIG.perdida;
+  const puedeVerSeguro = item.estado === 'ganada' || item.estado === 'pendiente_pago';
 
   return (
     <View style={styles.card}>
@@ -128,7 +129,18 @@ function HistorialCard({ item, navigation }) {
         </View>
       )}
 
-      <Text style={styles.cardFecha}>{formatFecha(item.fecha)}</Text>
+      <View style={styles.cardFooterRow}>
+        <Text style={styles.cardFecha}>{formatFecha(item.fecha)}</Text>
+        {puedeVerSeguro && (
+          <TouchableOpacity
+            style={styles.seguroBtn}
+            onPress={() => navigation.navigate('Insurance', { itemId: item.id })}
+          >
+            <Ionicons name="shield-checkmark-outline" size={13} color={colors.gold} />
+            <Text style={styles.seguroBtnTxt}>Ver seguro</Text>
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 }
@@ -265,7 +277,10 @@ const styles = StyleSheet.create({
   },
   alertaTxt: { color: '#fca5a5', fontSize: 12, flex: 1, lineHeight: 16 },
 
-  cardFecha: { color: colors.textMuted, fontSize: 10, textAlign: 'right' },
+  cardFooterRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  cardFecha: { color: colors.textMuted, fontSize: 10 },
+  seguroBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  seguroBtnTxt: { color: colors.gold, fontSize: 11, fontWeight: '600' },
 
   vacio: { alignItems: 'center', paddingTop: 80, gap: 12 },
   vacioTxt: { color: colors.textMuted, fontSize: 14 },

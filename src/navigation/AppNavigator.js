@@ -18,6 +18,8 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import BidHistoryScreen from '../screens/BidHistoryScreen';
 import ProposeItemScreen from '../screens/ProposeItemScreen';
+import InsuranceScreen from '../screens/InsuranceScreen';
+import PenaltiesScreen from '../screens/PenaltiesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -97,6 +99,32 @@ export default function AppNavigator() {
           options={{
             headerShown: true,
             title: 'Proponer artículo',
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.gold,
+            headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          }}
+        />
+
+        {/* Seguro del artículo */}
+        <Stack.Screen
+          name="Insurance"
+          component={InsuranceScreen}
+          options={{
+            headerShown: true,
+            title: 'Seguro del artículo',
+            headerStyle: { backgroundColor: colors.surface },
+            headerTintColor: colors.gold,
+            headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },
+          }}
+        />
+
+        {/* Multas */}
+        <Stack.Screen
+          name="Penalties"
+          component={PenaltiesScreen}
+          options={{
+            headerShown: true,
+            title: 'Mis multas',
             headerStyle: { backgroundColor: colors.surface },
             headerTintColor: colors.gold,
             headerTitleStyle: { color: colors.textPrimary, fontWeight: '700' },

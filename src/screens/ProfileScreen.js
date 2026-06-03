@@ -140,6 +140,15 @@ export default function ProfileScreen({ navigation }) {
           <Text style={styles.accionTxt}>Proponer artículo</Text>
           <Text style={styles.accionArrow}>›</Text>
         </TouchableOpacity>
+        <View style={styles.accionSep} />
+        <TouchableOpacity
+          style={styles.accionBtn}
+          onPress={() => navigation.navigate('Penalties')}
+        >
+          <Text style={styles.accionIcono}>⚠️</Text>
+          <Text style={styles.accionTxt}>Mis multas</Text>
+          <Text style={styles.accionArrow}>›</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Botón cerrar sesión */}
