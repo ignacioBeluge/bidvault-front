@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert,
+  StyleSheet, ActivityIndicator,
 } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { colors } from '../theme/colors';
 import { registerStage1 } from '../api/auth';
 
-// Simula tomar una foto (hasta que se integre expo-image-picker)
 function FotoButton({ label, tomada, onPress }) {
   return (
     <TouchableOpacity
@@ -21,18 +21,60 @@ function FotoButton({ label, tomada, onPress }) {
   );
 }
 
+// Campo normal
+function Campo({ label, valor, onChange, placeholder, teclado, autoCapitalize }) {
+  return (
+    <View style={styles.campo}>
+      <Text style={styles.campoLabel}>{label.toUpperCase()}</Text>
+      <TextInput
+        style={styles.input}
+        value={valor}
+        onChangeText={onChange}
+        placeholder={placeholder}
+        placeholderTextColor={colors.textMuted}
+        keyboardType={teclado || 'default'}
+        autoCapitalize={autoCapitalize || 'sentences'}
+        autoCorrect={false}
+      />
+    </View>
+  );
+}
+
+// Campo contraseña con ojito — evita el bug del simulador iOS con secureTextEntry
+function CampoPassword({ label, valor, onChange, placeholder }) {
+  const [visible, setVisible] = useState(false);
+  return (
+    <View style={styles.campo}>
+      <Text style={styles.campoLabel}>{label.toUpperCase()}</Text>
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.inputFlex}
+          value={valor}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor={colors.textMuted}
+          secureTextEntry={!visible}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="off"
+          textContentType="none"
+        />
+        <TouchableOpacity style={styles.ojito} onPress={() => setVisible(v => !v)}>
+          <Ionicons
+            name={visible ? 'eye-off-outline' : 'eye-outline'}
+            size={20}
+            color={colors.textMuted}
+          />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
 export default function RegisterStage1Screen({ navigation }) {
   const [form, setForm] = useState({
-    nombre: '',
-    email: '',
-    password: '',
-    confirmarPassword: '',
-    calle: '',
-    numero: '',
-    ciudad: '',
-    provincia: '',
-    codigoPostal: '',
-    paisOrigen: '',
+    nombre: '', email: '', password: '', confirmarPassword: '',
+    calle: '', numero: '', ciudad: '', provincia: '', codigoPostal: '', paisOrigen: '',
   });
   const [fotoFrente, setFotoFrente] = useState(false);
   const [fotoDorso, setFotoDorso] = useState(false);
@@ -62,23 +104,23 @@ export default function RegisterStage1Screen({ navigation }) {
     setError(null);
     setCargando(true);
     try {
-      await registerStage1({
+      const res = await registerStage1({
         nombre: form.nombre.trim(),
         email: form.email.trim().toLowerCase(),
         password: form.password,
-        domicilio_legal: {
-          calle: form.calle.trim(),
-          numero: form.numero.trim(),
-          ciudad: form.ciudad.trim(),
-          provincia: form.provincia.trim(),
-          codigo_postal: form.codigoPostal.trim(),
-        },
-        pais_origen: form.paisOrigen.trim().toUpperCase(),
-        foto_documento_frente: 'base64_placeholder_frente',
-        foto_documento_dorso: 'base64_placeholder_dorso',
+        calle: form.calle.trim(),
+        numero: form.numero.trim(),
+        ciudad: form.ciudad.trim(),
+        provincia: form.provincia.trim(),
+        codigoPostal: form.codigoPostal.trim(),
+        paisOrigen: form.paisOrigen.trim().toUpperCase(),
+        fotoFrenteUrl: 'pendiente',
+        fotoDorsoUrl: 'pendiente',
       });
-      // Etapa 1 exitosa → ir a Etapa 2
-      navigation.navigate('RegisterStage2', { email: form.email });
+      navigation.navigate('RegisterStage2', {
+        email: form.email,
+        usuarioId: res?.usuarioId,
+      });
     } catch (e) {
       const msg = e.response?.data?.mensaje || 'No se pudo completar el registro.';
       setError(msg);
@@ -90,7 +132,6 @@ export default function RegisterStage1Screen({ navigation }) {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
 
-      {/* Header */}
       <Text style={styles.titulo}>Crear cuenta</Text>
       <View style={styles.etapas}>
         <View style={styles.etapaActiva}><Text style={styles.etapaActivaTxt}>1</Text></View>
@@ -99,15 +140,13 @@ export default function RegisterStage1Screen({ navigation }) {
       </View>
       <Text style={styles.etapaLabel}>Etapa 1 de 2 — Datos personales</Text>
 
-      {/* Datos personales */}
       <Text style={styles.seccion}>DATOS PERSONALES</Text>
       <Campo label="Nombre completo" valor={form.nombre} onChange={set('nombre')} placeholder="Juan García" />
-      <Campo label="Email" valor={form.email} onChange={set('email')} placeholder="juan@email.com" teclado="email-address" />
-      <Campo label="Contraseña" valor={form.password} onChange={set('password')} placeholder="Mínimo 8 caracteres" seguro />
-      <Campo label="Confirmar contraseña" valor={form.confirmarPassword} onChange={set('confirmarPassword')} placeholder="Repetí la contraseña" seguro />
+      <Campo label="Email" valor={form.email} onChange={set('email')} placeholder="juan@email.com" teclado="email-address" autoCapitalize="none" />
+      <CampoPassword label="Contraseña" valor={form.password} onChange={set('password')} placeholder="Mínimo 8 caracteres" />
+      <CampoPassword label="Confirmar contraseña" valor={form.confirmarPassword} onChange={set('confirmarPassword')} placeholder="Repetí la contraseña" />
       <Campo label="País de origen (código ISO)" valor={form.paisOrigen} onChange={set('paisOrigen')} placeholder="AR" autoCapitalize="characters" />
 
-      {/* Domicilio */}
       <Text style={styles.seccion}>DOMICILIO LEGAL</Text>
       <Campo label="Calle" valor={form.calle} onChange={set('calle')} placeholder="Av. Corrientes" />
       <Campo label="Número" valor={form.numero} onChange={set('numero')} placeholder="1234" teclado="numeric" />
@@ -115,28 +154,17 @@ export default function RegisterStage1Screen({ navigation }) {
       <Campo label="Provincia" valor={form.provincia} onChange={set('provincia')} placeholder="CABA" />
       <Campo label="Código postal" valor={form.codigoPostal} onChange={set('codigoPostal')} placeholder="1043" teclado="numeric" />
 
-      {/* Fotos del documento */}
       <Text style={styles.seccion}>DOCUMENTO DE IDENTIDAD</Text>
       <Text style={styles.fotoHint}>Necesitamos ambas caras de tu DNI o pasaporte.</Text>
-      <FotoButton
-        label="Tomar foto del FRENTE"
-        tomada={fotoFrente}
-        onPress={() => setFotoFrente(true)}
-      />
-      <FotoButton
-        label="Tomar foto del DORSO"
-        tomada={fotoDorso}
-        onPress={() => setFotoDorso(true)}
-      />
+      <FotoButton label="Tomar foto del FRENTE" tomada={fotoFrente} onPress={() => setFotoFrente(true)} />
+      <FotoButton label="Tomar foto del DORSO" tomada={fotoDorso} onPress={() => setFotoDorso(true)} />
 
-      {/* Error */}
       {error && (
         <View style={styles.errorBox}>
           <Text style={styles.errorTxt}>⚠️ {error}</Text>
         </View>
       )}
 
-      {/* Botón */}
       <TouchableOpacity
         style={[styles.btn, cargando && styles.btnOff]}
         onPress={handleSubmit}
@@ -155,30 +183,11 @@ export default function RegisterStage1Screen({ navigation }) {
   );
 }
 
-function Campo({ label, valor, onChange, placeholder, teclado, seguro, autoCapitalize }) {
-  return (
-    <View style={styles.campo}>
-      <Text style={styles.campoLabel}>{label.toUpperCase()}</Text>
-      <TextInput
-        style={styles.input}
-        value={valor}
-        onChangeText={onChange}
-        placeholder={placeholder}
-        placeholderTextColor={colors.textMuted}
-        keyboardType={teclado || 'default'}
-        secureTextEntry={!!seguro}
-        autoCapitalize={autoCapitalize || (seguro ? 'none' : 'sentences')}
-        autoCorrect={false}
-      />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, gap: 12, paddingBottom: 40 },
   titulo: { color: colors.gold, fontSize: 24, fontWeight: 'bold', textAlign: 'center', letterSpacing: 1, marginBottom: 8 },
-  etapas: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 0 },
+  etapas: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   etapaActiva: { width: 32, height: 32, borderRadius: 16, backgroundColor: colors.gold, justifyContent: 'center', alignItems: 'center' },
   etapaActivaTxt: { color: colors.background, fontWeight: '700', fontSize: 14 },
   etapaLinea: { width: 60, height: 2, backgroundColor: colors.border },
@@ -189,6 +198,9 @@ const styles = StyleSheet.create({
   campo: { gap: 6 },
   campoLabel: { color: colors.textSecondary, fontSize: 11, letterSpacing: 1 },
   input: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 14, color: colors.textPrimary, fontSize: 14 },
+  inputRow: { flexDirection: 'row', alignItems: 'center', backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 10 },
+  inputFlex: { flex: 1, padding: 14, color: colors.textPrimary, fontSize: 14 },
+  ojito: { padding: 14 },
   fotoHint: { color: colors.textMuted, fontSize: 12 },
   fotoBtn: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.border, borderRadius: 10, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   fotoBtnOk: { borderColor: '#22c55e', backgroundColor: '#14532d22' },

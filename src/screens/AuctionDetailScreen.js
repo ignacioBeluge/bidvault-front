@@ -28,27 +28,36 @@ export default function AuctionDetailScreen({ route }) {
 
   // El item principal de la subasta
   const item = subasta?.items?.[0];
+  const isMounted = useRef(true);
+
+  useEffect(() => {
+    isMounted.current = true;
+    return () => { isMounted.current = false; }; // cleanup al desmontar
+  }, []);
 
   const cargar = useCallback(async () => {
+    if (!isMounted.current) return;
     setCargando(true);
     setErrorCarga(null);
     try {
       const data = await getSubasta(subastaId);
+      if (!isMounted.current) return;
       setSubasta(data);
 
-      // Cargar restricciones de puja para el primer item
       if (data.items?.length > 0) {
         try {
           const c = await getConstraints(subastaId, data.items[0].id, categoriaUsuario || 'comun');
+          if (!isMounted.current) return;
           setRestricciones(c);
         } catch {
           // Si falla constraints, no bloqueamos la pantalla
         }
       }
     } catch (e) {
+      if (!isMounted.current) return;
       setErrorCarga(e.response?.data?.mensaje || 'No se pudo cargar la subasta.');
     } finally {
-      setCargando(false);
+      if (isMounted.current) setCargando(false);
     }
   }, [subastaId, categoriaUsuario]);
 
@@ -81,13 +90,15 @@ export default function AuctionDetailScreen({ route }) {
             setPujando(true);
             try {
               await hacerPuja(subastaId, item.id, monto);
+              if (!isMounted.current) return;
               setExitoPuja('¡Puja realizada exitosamente!');
               setMontoInput('');
-              cargar(); // refresca para ver nueva mejor oferta
+              cargar();
             } catch (e) {
+              if (!isMounted.current) return;
               setErrorPuja(e.response?.data?.mensaje || 'No se pudo enviar la puja.');
             } finally {
-              setPujando(false);
+              if (isMounted.current) setPujando(false);
             }
           },
         },

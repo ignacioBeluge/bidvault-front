@@ -13,6 +13,7 @@ const TIPOS = [
 ];
 
 export default function RegisterStage2Screen({ navigation, route }) {
+  const usuarioId = route?.params?.usuarioId;
   const [tipoSeleccionado, setTipoSeleccionado] = useState('TARJETA');
 
   // Campos tarjeta
@@ -67,7 +68,7 @@ export default function RegisterStage2Screen({ navigation, route }) {
         detalle = { banco_emisor: bancoEmisor, numero_cheque: numeroCheque, monto: parseFloat(montoCheque) };
       }
 
-      await registerStage2({ tipo: tipoSeleccionado, ...detalle });
+      await registerStage2(usuarioId, { tipo: tipoSeleccionado, ...detalle });
       navigation.replace('Home');
     } catch (e) {
       setError(e.response?.data?.mensaje || 'No se pudo registrar el medio de pago.');
@@ -124,7 +125,15 @@ export default function RegisterStage2Screen({ navigation, route }) {
             ))}
           </View>
           <Campo label="Titular (como figura en la tarjeta)" valor={titular} onChange={setTitular} placeholder="JUAN GARCIA" autoCapitalize="characters" />
-          <Campo label="Vencimiento (MM/AA)" valor={vencimiento} onChange={setVencimiento} placeholder="12/28" teclado="numeric" maxLength={5} />
+          <Campo label="Vencimiento (MM/AA)" valor={vencimiento} onChange={(txt) => {
+            // Permite solo números y el slash, formatea automáticamente MM/AA
+            const limpio = txt.replace(/[^0-9]/g, '');
+            if (limpio.length <= 2) {
+              setVencimiento(limpio);
+            } else {
+              setVencimiento(limpio.substring(0, 2) + '/' + limpio.substring(2, 4));
+            }
+          }} placeholder="12/28" teclado="numeric" maxLength={5} />
         </>
       )}
 
