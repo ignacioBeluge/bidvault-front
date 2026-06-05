@@ -166,9 +166,13 @@ export default function BidHistoryScreen({ navigation }) {
 
   useFocusEffect(useCallback(() => { cargar(); }, [cargar]));
 
-  // Estadísticas rápidas
+  // Estadísticas
   const ganadas = historial.filter(h => h.estado === 'ganada').length;
   const pendientes = historial.filter(h => h.estado === 'pendiente_pago').length;
+  const totalOfertado = historial.reduce((acc, h) => acc + h.montoOfertado, 0);
+  const totalPagado = historial
+    .filter(h => h.estado === 'ganada')
+    .reduce((acc, h) => acc + h.mejorOfertaFinal, 0);
 
   if (cargando) return (
     <View style={styles.centered}>
@@ -178,7 +182,7 @@ export default function BidHistoryScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Resumen */}
+      {/* Resumen — métricas */}
       <View style={styles.resumen}>
         <View style={styles.resumenItem}>
           <Text style={styles.resumenNum}>{historial.length}</Text>
@@ -195,6 +199,21 @@ export default function BidHistoryScreen({ navigation }) {
             {pendientes}
           </Text>
           <Text style={styles.resumenLabel}>Pago pend.</Text>
+        </View>
+      </View>
+
+      {/* Métricas de importes */}
+      <View style={styles.metricas}>
+        <View style={styles.metricaItem}>
+          <Text style={styles.metricaLabel}>TOTAL OFERTADO</Text>
+          <Text style={styles.metricaValor}>{formatMonto(totalOfertado)}</Text>
+        </View>
+        <View style={styles.metricaSep} />
+        <View style={styles.metricaItem}>
+          <Text style={styles.metricaLabel}>TOTAL PAGADO</Text>
+          <Text style={[styles.metricaValor, { color: '#86efac' }]}>
+            {totalPagado > 0 ? formatMonto(totalPagado) : '—'}
+          </Text>
         </View>
       </View>
 
@@ -238,6 +257,18 @@ const styles = StyleSheet.create({
   resumenLabel: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
   resumenSep: { width: 1, backgroundColor: colors.border },
 
+  metricas: {
+    flexDirection: 'row',
+    backgroundColor: colors.surface,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  metricaItem: { flex: 1 },
+  metricaLabel: { color: colors.textMuted, fontSize: 9, letterSpacing: 1, marginBottom: 3 },
+  metricaValor: { color: colors.textPrimary, fontSize: 15, fontWeight: '700' },
+  metricaSep: { width: 1, backgroundColor: colors.border, marginHorizontal: 16 },
   lista: { padding: 16, paddingBottom: 32 },
 
   card: {
