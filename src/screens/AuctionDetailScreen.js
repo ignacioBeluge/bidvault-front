@@ -1,12 +1,15 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View, Text, TextInput, TouchableOpacity, ScrollView,
-  StyleSheet, ActivityIndicator, Alert,
+  StyleSheet, ActivityIndicator, Alert, RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { colors } from '../theme/colors';
 import { getSubasta, getConstraints } from '../api/auctions';
 import { hacerPuja } from '../api/bids';
 import BidRangeIndicator from '../components/BidRangeIndicator';
+
+const POLLING_INTERVAL = 5000; // refresca cada 5 segundos
 
 function fmt(n) {
   if (!n && n !== 0) return 'Sin ofertas';
@@ -25,6 +28,8 @@ export default function AuctionDetailScreen({ route }) {
   const [pujando, setPujando] = useState(false);
   const [errorPuja, setErrorPuja] = useState(null);
   const [exitoPuja, setExitoPuja] = useState(null);
+  const [countdown, setCountdown] = useState(POLLING_INTERVAL / 1000);
+  const [refreshing, setRefreshing] = useState(false);
 
   // El item principal de la subasta
   const item = subasta?.items?.[0];
@@ -35,9 +40,9 @@ export default function AuctionDetailScreen({ route }) {
     return () => { isMounted.current = false; }; // cleanup al desmontar
   }, []);
 
-  const cargar = useCallback(async () => {
+  const cargar = useCallback(async (esPolling = false) => {
     if (!isMounted.current) return;
-    setCargando(true);
+    if (!esPolling) setCargando(true); // spinner solo en carga inicial, no en polling
     setErrorCarga(null);
     try {
       const data = await getSubasta(subastaId);
@@ -55,13 +60,38 @@ export default function AuctionDetailScreen({ route }) {
       }
     } catch (e) {
       if (!isMounted.current) return;
-      setErrorCarga(e.response?.data?.mensaje || 'No se pudo cargar la subasta.');
+      if (!esPolling) setErrorCarga(e.response?.data?.mensaje || 'No se pudo cargar la subasta.');
     } finally {
-      if (isMounted.current) setCargando(false);
+      if (isMounted.current && !esPolling) setCargando(false);
     }
   }, [subastaId, categoriaUsuario]);
 
+  // Carga inicial
   useEffect(() => { cargar(); }, [cargar]);
+
+  // Countdown visual: decrementa cada segundo
+  useFocusEffect(
+    useCallback(() => {
+      setCountdown(POLLING_INTERVAL / 1000);
+      const tick = setInterval(() => {
+        setCountdown(c => {
+          if (c <= 1) return POLLING_INTERVAL / 1000;
+          return c - 1;
+        });
+      }, 1000);
+      return () => clearInterval(tick);
+    }, [])
+  );
+
+  // Polling: refresca automáticamente cada 5 segundos mientras la pantalla está activa
+  useFocusEffect(
+    useCallback(() => {
+      const intervalo = setInterval(() => {
+        if (!pujando) cargar(true); // true = es polling, no muestra spinner
+      }, POLLING_INTERVAL);
+      return () => clearInterval(intervalo); // limpia al salir de la pantalla
+    }, [cargar, pujando])
+  );
 
   async function handlePujar() {
     setErrorPuja(null);
@@ -130,7 +160,29 @@ export default function AuctionDetailScreen({ route }) {
   const montoNum = parseFloat(montoInput.replace(',', '.')) || null;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.content}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={async () => {
+            setRefreshing(true);
+            setCountdown(POLLING_INTERVAL / 1000);
+            await cargar(false);
+            setRefreshing(false);
+          }}
+          tintColor={colors.gold}
+        />
+      }
+    >
+
+      {/* Indicador de tiempo real con countdown */}
+      <View style={styles.liveRow}>
+        <View style={styles.liveDot} />
+        <Text style={styles.liveTxt}>EN VIVO</Text>
+        <Text style={styles.liveCountdown}>· actualiza en {countdown}s</Text>
+      </View>
 
       {/* Título y badges */}
       <Text style={styles.titulo}>{subasta.ubicacion}</Text>
@@ -226,6 +278,10 @@ export default function AuctionDetailScreen({ route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 20, gap: 16, paddingBottom: 40 },
+  liveRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#22c55e' },
+  liveTxt: { color: '#22c55e', fontSize: 10, fontWeight: '700', letterSpacing: 1 },
+  liveCountdown: { color: '#86efac', fontSize: 10, letterSpacing: 0.5 },
   centered: { flex: 1, backgroundColor: colors.background, justifyContent: 'center', alignItems: 'center', padding: 24, gap: 16 },
   titulo: { color: colors.textPrimary, fontSize: 22, fontWeight: '800', lineHeight: 28 },
   badgesRow: { flexDirection: 'row', gap: 8 },

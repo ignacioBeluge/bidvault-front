@@ -111,6 +111,24 @@ export default function ProfileScreen({ navigation }) {
         </View>
       </View>
 
+      {/* Medio de pago */}
+      <View style={styles.seccionCard}>
+        <Text style={styles.seccionTitulo}>MEDIO DE PAGO</Text>
+        {usuario.etapaRegistro >= 2 ? (
+          <FilaDato icono="💳" label="Estado" valor="Registrado ✓" />
+        ) : (
+          <View>
+            <FilaDato icono="💳" label="Estado" valor="Sin medio de pago" />
+            <TouchableOpacity
+              style={styles.agregarPagoBtn}
+              onPress={() => navigation.navigate('RegisterStage2', { usuarioId: usuario.id })}
+            >
+              <Text style={styles.agregarPagoBtnTxt}>+ Agregar medio de pago</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
       {/* Acciones */}
       <View style={styles.seccionCard}>
         <Text style={styles.seccionTitulo}>ACCIONES</Text>
@@ -223,4 +241,9 @@ const styles = StyleSheet.create({
   },
   logoutTxt: { color: '#ef4444', fontWeight: 'bold', fontSize: 14, letterSpacing: 2 },
   version: { color: colors.textMuted, fontSize: 11, textAlign: 'center' },
+  agregarPagoBtn: {
+    borderWidth: 1, borderColor: colors.gold,
+    borderRadius: 8, padding: 10, alignItems: 'center', marginTop: 8,
+  },
+  agregarPagoBtnTxt: { color: colors.gold, fontSize: 13, fontWeight: '600' },
 });
